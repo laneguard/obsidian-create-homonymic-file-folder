@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-create-homonymic-file-folder",
+	"name": "obsidian-create-homonymic-file-folder",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Creates a directory with the same name for the specified file and collects the file into the directory with the same name. 为指定文件创建同名目录并将此文件收集到同名目录中",
+	"author": "laneguard",
 	"isDesktopOnly": false
 }
