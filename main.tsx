@@ -14,6 +14,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { ReactView } from "./ReactView";
 import { createRoot } from "react-dom/client";
+import * as path from "path";
 
 // 定义插件设置接口
 interface MyPluginSettings {
@@ -45,6 +46,15 @@ export default class MyPlugin extends Plugin {
 				new Notice("This is a notice!");
 			}
 		);
+
+		const ribbonIconEl2 = this.addRibbonIcon(
+			"dice",
+			"Activate view",
+			() => {
+				this.activateView();
+			}
+		);
+
 		// 为图标添加自定义类
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
 
@@ -104,6 +114,24 @@ export default class MyPlugin extends Plugin {
 		this.registerInterval(
 			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
 		);
+
+		this.registerEvent(
+			this.app.workspace.on("editor-menu", (menu, editor, view) => {
+				menu.addItem((item) => {
+					item.setTitle("create-homonymic-file-folder:create-folder 👈")
+						.setIcon("document")
+						.onClick(async () => {
+							const basePath = view.file?.vault.adapter.basePath;
+							const filePath = view.file.path;
+							const absoluteFilePath = path.join(basePath, filePath);
+							const folderPath = path.join(path.dirname(absoluteFilePath),view.file?.basename);
+							createFolder(folderPath);
+							moveFile(absoluteFilePath,folderPath);
+							return new Notice(absoluteFilePath);
+						});
+				});
+			})
+		);
 	}
 
 	// 插件卸载时调用
@@ -138,7 +166,7 @@ export default class MyPlugin extends Plugin {
 		} else {
 			// Our view could not be found in the workspace, create a new leaf
 			// in the right sidebar for it
-			leaf = workspace.getRightLeaf(false);
+			leaf = workspace.getLeaf(false);
 			await leaf.setViewState({ type: VIEW_TYPE_EXAMPLE, active: true });
 		}
 
@@ -223,5 +251,32 @@ class ExampleView extends ItemView {
 
 	async onClose() {
 		ReactDOM.unmountComponentAtNode(this.containerEl.children[1]);
+	}
+}
+
+import * as fs from "fs";
+
+function createFolder(folderPath: string): void {
+	try {
+		// 使用 fs.mkdirSync 同步创建文件夹
+		fs.mkdirSync(folderPath, { recursive: true });
+		console.log(`文件夹已成功创建：${folderPath}`);
+	} catch (error) {
+		console.error(`创建文件夹时出错：${error.message}`);
+	}
+}
+
+function moveFile(sourceFilePath: string, targetDirPath: string): void {
+	try {
+		// 获取源文件的文件名
+		const fileName = path.basename(sourceFilePath);
+		// 构造目标文件的完整路径
+		const targetFilePath = path.join(targetDirPath, fileName);
+
+		// 使用 fs.renameSync 同步移动文件
+		fs.renameSync(sourceFilePath, targetFilePath);
+		console.log(`文件已成功移动到：${targetFilePath}`);
+	} catch (error) {
+		console.error(`移动文件时出错：${error.message}`);
 	}
 }
